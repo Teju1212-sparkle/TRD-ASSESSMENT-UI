@@ -28,8 +28,7 @@ import avatar8 from './../../assets/images/avatars/8.jpg'
 const AppHeaderDropdown = () => {
   const navigate = useNavigate()
   const logout = () => {
-    // localStorage.clear();
-    // navigate('/login')
+    localStorage.clear();
     navigate('/login')
   }
   return (

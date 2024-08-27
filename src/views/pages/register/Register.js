@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 import { Card, CardBody, CardTitle, FormGroup, Label, Button } from 'reactstrap';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
+import Swal from 'sweetalert2'
 const Register = () => {
   const navigate = useNavigate();
   const validationSchema = Yup.object({
@@ -13,7 +13,6 @@ const Register = () => {
     password: Yup.string() .min(4, 'Password must be at least 4 characters') .required('Required'),
   });
   const handleSubmit = async (values, { setSubmitting }) => {
-    console.log(values);
     console.log("register", values);
     let obj = {
       email: values.email,
@@ -26,16 +25,25 @@ const Register = () => {
       },
     }).then((response) => {
       console.log("success", response)
+      if(response.data.status==201){
+      Swal.fire("User Registred Sucessfully")
       navigate('/login');
-    }).catch((e) => {
-      console.log("err", e)
+      }
+    }).catch((error) => {
+      console.log("err", error)
+      Swal.fire({
+        type: "error",
+        title: "error",
+        icon: "error",
+        text: error.response.data.message
+      })
     })
     setSubmitting(false);
   }
   return (
     <Card className="mt-5" style={{ maxWidth: '500px', margin: 'auto' }}>
       <CardBody>
-        <CardTitle tag="h5">Register Form</CardTitle>
+        <CardTitle tag="h5" style={{textAlign:'center'}}>Register Form</CardTitle>
         <Formik
           initialValues={{ name: '', email: '', password: '' }}
           validationSchema={validationSchema}

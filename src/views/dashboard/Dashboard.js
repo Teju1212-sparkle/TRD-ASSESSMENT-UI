@@ -1,75 +1,78 @@
-import React from "react";
-import PropTypes from "prop-types"
-import { history, Link } from "react-router-dom";
-import { Card, CardHeader, CardBody, Button } from "reactstrap"
-import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
-import "react-bootstrap-table/dist/react-bootstrap-table-all.min.css";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import CIcon from '@coreui/icons-react'
+import { Card, CardHeader, CardBody, CardTitle, Button, Table } from "reactstrap"
 import Swal from 'sweetalert2'
-//import { withAlert } from "react-alert";
-import axios from "axios";
-class Users extends React.Component {
-  state = {
-   
-    products: [],
-  }
-  componentDidMount() {
-    this.userDetails();
-  }
-  userDetails = () => {
-    axios.defaults.headers.common['Authorization'] = localStorage.getItem('token')
-    axios.get('http://localhost:3005/user/api/bec/all/users/' + '?page=1&limit=10').then(
-      (response) => {
-        console.log(response)
-        this.setState({ products: response.data.data.docs })
-      }
-    )
-      .catch(
-        (error) => {
-          console.log(error)
-          if (error.response.status == 401) {
-            Swal.fire({
-              type: "error",
-              title: "error",
-              icon: "error",
-              text: "Session Expired"
+const Dashboard = () => {
+  //states 
+  const [repo, setRepo] = useState([])
+  const navigate = useNavigate();
+  //For lifecycle methods
+  let onMounted;
+  useEffect(() => {
+    onMounted = async () => {
+      axios.defaults.headers.common['Authorization'] = localStorage.getItem('token')
+      const getRepo = await axios.get('http://localhost:3005/user/api/bec/users/list')
+        .then(
+          (response) => {
+            console.log(response)
+            setRepo(response.data.data.docs);
+          })
+        .catch(
+          (error) => {
+            if (error.response.status == 401) {
+              Swal.fire({
+                type: "error",
+                title: "error",
+                icon: "error",
+                text: "Session Expired"
+              }
+              )
+              navigate('/login')
             }
-            )
-            this.props.history.push('/login')
-          }
-          else {
-            Swal.fire({
-              type: "error",
-              title: "error",
-              icon: "error",
-              text: error.response.data.error
+            else {
+              Swal.fire({
+                type: "error",
+                title: "error",
+                icon: "error",
+                text: error.response.data.error
+              }
+              )
             }
-            )
           }
-        }
-      )
-  }
+        )
+    }
+    //console.log(onMounted)
+    onMounted();
+  }, []);
 
- 
- 
-  render() {
-    //const alert = this.props.alert;
-    return (
-      <Card>
-        <CardHeader>
-          Users
-     
-        </CardHeader>
+  return (
+    <>
+      <Card className="mt-5" style={{ maxWidth: '800px', margin: 'auto' }}>
         <CardBody>
-          <BootstrapTable data={this.state.products} search keyField="Name" bordered={false} version="4" hover striped pagination={true}  >
-            <TableHeaderColumn dataField="username">Username</TableHeaderColumn>
-            <TableHeaderColumn dataField="email">Email</TableHeaderColumn>
-            
-           
-          </BootstrapTable>
+          <CardTitle tag="h5" style={{textAlign:'left',fontSize:'1.5rem'}}>Users List</CardTitle>
+          <Table striped>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Username</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              {repo.map((user, index) => (
+                <tr key={user.id}>
+                  <th scope="row">{index + 1}</th>
+                  <td>{user.fullName}</td>
+                  <td>{user.email}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
         </CardBody>
       </Card>
-    )
-  }
-}
-export default Users;
+    </>
+  )
+};
+export default Dashboard
